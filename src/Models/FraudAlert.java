@@ -1,94 +1,69 @@
 package Models;
+
 import java.sql.Timestamp;
+
 public class FraudAlert {
 
     private int fraudId;
     private int accountId;
     private String fraudType;
-    private int attempts;
-    private Timestamp firstDetectedAt;
-    private Timestamp lastDetectedAt;
+    private Timestamp detectedTime;
     private String status;
 
-
-    public FraudAlert() {
-    }
-
+    public FraudAlert() {}
 
     public FraudAlert(int accountId, String fraudType) {
         this.accountId = accountId;
         this.fraudType = fraudType;
-        this.attempts = 1;
         this.status = "PENDING";
     }
 
     public FraudAlert(int fraudId, int accountId, String fraudType,
-                      int attempts, Timestamp firstDetectedAt,
-                      Timestamp lastDetectedAt, String status) {
+                      Timestamp detectedTime, String status) {
         this.fraudId = fraudId;
         this.accountId = accountId;
         this.fraudType = fraudType;
-        this.attempts = attempts;
-        this.firstDetectedAt = firstDetectedAt;
-        this.lastDetectedAt = lastDetectedAt;
+        this.detectedTime = detectedTime;
         this.status = status;
     }
 
-
     public int getFraudId() {
         return fraudId;
-    }
-
-    public void setFraudId(int fraudId) {
-        this.fraudId = fraudId;
     }
 
     public int getAccountId() {
         return accountId;
     }
 
-    public void setAccountId(int accountId) {
-        this.accountId = accountId;
-    }
-
     public String getFraudType() {
         return fraudType;
     }
 
-    public void setFraudType(String fraudType) {
-        this.fraudType = fraudType;
-    }
-
-    public int getAttempts() {
-        return attempts;
-    }
-
-    public void setAttempts(int attempts) {
-        this.attempts = attempts;
-    }
-
-    public Timestamp getFirstDetectedAt() {
-        return firstDetectedAt;
-    }
-
-    public void setFirstDetectedAt(Timestamp firstDetectedAt) {
-        this.firstDetectedAt = firstDetectedAt;
-    }
-
-    public Timestamp getLastDetectedAt() {
-        return lastDetectedAt;
-    }
-
-    public void setLastDetectedAt(Timestamp lastDetectedAt) {
-        this.lastDetectedAt = lastDetectedAt;
+    public Timestamp getDetectedTime() {
+        return detectedTime;
     }
 
     public String getStatus() {
         return status;
     }
 
+    public void setFraudId(int fraudId) {
+        this.fraudId = fraudId;
+    }
+
+    public void setAccountId(int accountId) {
+        this.accountId = accountId;
+    }
+
+    public void setFraudType(String fraudType) {
+        this.fraudType = fraudType;
+    }
+
+    public void setDetectedTime(Timestamp detectedTime) {
+        this.detectedTime = detectedTime;
+    }
+
     public void setStatus(String status) {
         this.status = status;
     }
-
 }

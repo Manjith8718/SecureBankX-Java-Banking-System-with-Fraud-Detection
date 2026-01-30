@@ -1,29 +1,31 @@
 package Models;
+
 public class Account {
+
     private int accountId;
     private int userId;
     private long accountNumber;
-    private int balance;
-    private String pin;
+    private double balance;
     private String status;
     private String accountType;
 
     public Account() {}
 
-    public Account(int accountId, int userId, Long accountNumber, int balance, String pin, String status, String accountType) {
+    public Account(int userId, long accountNumber, String accountType) {
+        this.userId = userId;
+        this.accountNumber = accountNumber;
+        this.accountType = accountType;
+        this.status = "ACTIVE";
+        this.balance = 0.0;
+    }
+
+    public Account(int accountId, int userId, long accountNumber,
+                   double balance, String status, String accountType) {
         this.accountId = accountId;
         this.userId = userId;
         this.accountNumber = accountNumber;
         this.balance = balance;
-        this.pin = pin;
         this.status = status;
-        this.accountType = accountType;
-    }
-
-    public Account(int userId, long accountNumber,String pin,String accountType) {
-        this.userId = userId;
-        this.accountNumber = accountNumber;
-        this.pin = pin;
         this.accountType = accountType;
     }
 
@@ -31,52 +33,44 @@ public class Account {
         return accountId;
     }
 
-    public void setAccountId(int accountId) {
-        this.accountId = accountId;
-    }
-
     public int getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
-
-    public Long getAccountNumber() {
+    public long getAccountNumber() {
         return accountNumber;
     }
 
-    public void setAccountNumber(long accountNumber) {
-        this.accountNumber = accountNumber;
-    }
-
-    public int getBalance() {
+    public double getBalance() {
         return balance;
-    }
-
-    public void setBalance(int balance) {
-        this.balance = balance;
-    }
-
-    public String getPin() {
-        return pin;
-    }
-
-    public void setPin(String pin) {
-        this.pin = pin;
     }
 
     public String getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
     public String getAccountType() {
         return accountType;
+    }
+
+    public void setAccountId(int accountId) {
+        this.accountId = accountId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+    public void setAccountNumber(long accountNumber) {
+        this.accountNumber = accountNumber;
+    }
+
+    public void setBalance(double balance) {
+        this.balance = balance;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public void setAccountType(String accountType) {

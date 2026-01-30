@@ -8,85 +8,113 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class PinDAO {
-     public static boolean wrongPin(long accountNumber)
-     {
-          String sql = "select account_id from accounts where account_number = ?";
-          try(Connection conn = DBConnection.getConnection();
-              PreparedStatement ps = conn.prepareStatement(sql);)
-          {
-              ps.setLong(1,accountNumber);
-              ResultSet rs = ps.executeQuery();
-              if(rs.next())
-              {
-                  return checkPin(rs.getInt(1));
-              }
-          }
-          catch(SQLException e)
-          {
-              System.out.println(e.getMessage());
-          }
-          return false;
-     }
 
-     public static boolean checkPin(int accountId)
-     {
-         String sql = "select account_id from pin_lock where account_id = ?";
-         try(Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);)
-         {
-             ps.setInt(1, accountId);
-             ResultSet rs = ps.executeQuery();
-             if(rs.next())
-             {
-                return insertPin(accountId);
-             }
-             else
-             {
-                return updatePin(accountId);
-             }
-         }
-         catch(SQLException e)
-         {
-             System.out.println(e.getMessage());
-         }
-         return false;
-     }
+    // ---------------- INSERT PIN LOCK ROW ----------------
+    public static void insertPin(int accountId) {
+        String sql = "INSERT INTO pin_lock(account_id, attempts) VALUES (?, 0)";
 
-     public static boolean insertPin(int accountId)
-     {
-         String sql = "insert into pin_lock values(?)";
-         try(Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);)
-         {
-             ps.setInt(1, accountId);
-             if(ps.executeUpdate()>0)
-             {
-                 return true;
-             }
-         }
-         catch(SQLException e)
-         {
-             System.out.println(e.getMessage());
-         }
-         return false;
-     }
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
 
-    public static boolean updatePin(int accountId)
-    {
-        String sql = "update pin_lock set attempts = attempts + 1 where account_id = ?";
-        try(Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql);)
-        {
             ps.setInt(1, accountId);
-            if(ps.executeUpdate()>0)
-            {
-                return true;
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            // Likely already exists
+            System.out.println("Pin lock already exists for account " + accountId);
+        }
+    }
+
+    // ---------------- INCREMENT WRONG ATTEMPTS ----------------
+    public static void incrementAttempts(int accountId) {
+        String sql = "UPDATE pin_lock SET attempts = attempts + 1 WHERE account_id = ?";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, accountId);
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ---------------- GET ATTEMPTS ----------------
+    public static int getAttempts(int accountId) {
+        String sql = "SELECT attempts FROM pin_lock WHERE account_id = ?";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, accountId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("attempts");
             }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        catch(SQLException e)
-        {
-            System.out.println(e.getMessage());
+        return 0;
+    }
+
+    // ---------------- RESET ATTEMPTS ----------------
+    public static void resetAttempts(int accountId) {
+        String sql = "UPDATE pin_lock SET attempts = 0 WHERE account_id = ?";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, accountId);
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return false;
+    }
+
+    // ---------------- BLOCK PIN FOR 24 HOURS ----------------
+    public static void blockFor24Hours(int accountId) {
+        String sql = """
+            UPDATE pin_lock
+            SET blocked_until = DATE_ADD(NOW(), INTERVAL 24 HOUR)
+            WHERE account_id = ?
+        """;
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, accountId);
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ---------------- UNFREEZE ACCOUNT IF BLOCK EXPIRED ----------------
+    public static void unfreezeIfExpired(int accountId) {
+        String sql = """
+            UPDATE accounts a
+            JOIN pin_lock p ON a.account_id = p.account_id
+            SET a.status = 'ACTIVE',
+                p.attempts = 0,
+                p.blocked_until = NULL
+            WHERE a.account_id = ?
+              AND p.blocked_until IS NOT NULL
+              AND p.blocked_until <= NOW()
+        """;
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, accountId);
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }
