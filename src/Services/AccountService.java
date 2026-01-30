@@ -300,13 +300,6 @@ public class AccountService {
         System.out.print("Account Number: ");
         long accNo = sc.nextLong();
 
-        System.out.print("PIN: ");
-        String pin = sc.next();
-
-        System.out.print("Account Type: ");
-        String type = sc.next();
-
-        String hash = BCrypt.hashpw(pin, BCrypt.gensalt());
-        return new Account(userId, accNo, hash, type);
+        return new Account(userId, accNo);
     }
 }
