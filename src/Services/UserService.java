@@ -44,9 +44,16 @@ public class UserService {
         if (UserDAO.userExists(u)) {
             System.out.println("User Already Exists. Please Login.");
             userLogin(sc);
-        } else {
-            UserDAO.createUser(u);
+            return;
+        }
+        if(UserDAO.createUser(u))
+        {
             System.out.println("User Registered Successfully");
+            userLogin(sc);
+        }
+
+       else {
+        System.out.println("Registration failed. Try again.");
         }
     }
 

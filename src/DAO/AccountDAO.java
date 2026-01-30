@@ -20,7 +20,6 @@ public class AccountDAO {
 
             ps.setInt(1, a.getUserId());
             ps.setLong(2, a.getAccountNumber());
-            ps.setString(3, a.getAccountType());
 
             return ps.executeUpdate() > 0;
 
