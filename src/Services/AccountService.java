@@ -37,6 +37,7 @@ public class AccountService {
             int accountId = AccountDAO.getAccountId(acc.getAccountNumber());
             PinDAO.insertPin(accountId);
             System.out.println("Account Created Successfully");
+            AccountService.accountMenu(sc);
         } else {
             System.out.println("Failed to Create Account");
         }
@@ -294,12 +295,22 @@ public class AccountService {
     }
 
     private static Account accountDetails(Scanner sc) {
-        System.out.print("User ID: ");
-        int userId = sc.nextInt();
 
-        System.out.print("Account Number: ");
-        long accNo = sc.nextLong();
+        System.out.print("Enter your registered Email: ");
+        String email = sc.next();
+
+        int userId = UserDAO.getUserIdByEmail(email);
+
+        if (userId == -1) {
+            System.out.println("Email not found. Please register first.");
+            return null;
+        }
+
+        long accNo = AccountDAO.generateUniqueAccountNumber();
+        System.out.println("Generated Account Number: " + accNo);
 
         return new Account(userId, accNo);
     }
+
+
 }

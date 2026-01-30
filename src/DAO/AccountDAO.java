@@ -11,8 +11,8 @@ public class AccountDAO {
     // ---------------- CREATE ACCOUNT ----------------
     public static boolean createAccount(Account a) {
         String sql = """
-            INSERT INTO accounts(user_id, account_number, account_type, status, balance)
-            VALUES (?, ?, ?, 'ACTIVE', 0)
+            INSERT INTO accounts(user_id, account_number,  status, balance)
+            VALUES (?, ?, 'ACTIVE', 0.0)
         """;
 
         try (Connection con = DBConnection.getConnection();
@@ -176,4 +176,29 @@ public class AccountDAO {
             return false;
         }
     }
+
+    public static long generateUniqueAccountNumber() {
+
+        long accNo;
+        String checkSql = "SELECT 1 FROM accounts WHERE account_number=?";
+
+        do {
+            accNo = 100000000000L + (long)(Math.random() * 900000000000L);
+
+            try (Connection con = DBConnection.getConnection();
+                 PreparedStatement ps = con.prepareStatement(checkSql)) {
+
+                ps.setLong(1, accNo);
+                ResultSet rs = ps.executeQuery();
+                if (!rs.next()) {
+                    break; // unique
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } while (true);
+
+        return accNo;
+    }
+
 }
