@@ -7,24 +7,33 @@ public class Account {
     private long accountNumber;
     private double balance;
     private String status;
+    private String pinHash;
+
+    public String getPinHash() {
+        return pinHash;
+    }
+
 
     public Account() {}
 
-    public Account(int userId, long accountNumber) {
+    public Account(int userId, long accountNumber, String pinHash) {
         this.userId = userId;
         this.accountNumber = accountNumber;
+        this.pinHash = pinHash;
         this.status = "ACTIVE";
         this.balance = 0.0;
     }
 
     public Account(int accountId, int userId, long accountNumber,
-                   double balance, String status) {
+                   double balance, String status, String pinHash) {
         this.accountId = accountId;
         this.userId = userId;
         this.accountNumber = accountNumber;
         this.balance = balance;
         this.status = status;
+        this.pinHash = pinHash;
     }
+
 
     public int getAccountId() {
         return accountId;
@@ -47,7 +56,6 @@ public class Account {
     }
 
 
-
     public void setAccountId(int accountId) {
         this.accountId = accountId;
     }
@@ -68,5 +76,8 @@ public class Account {
         this.status = status;
     }
 
+    public void setPinHash(String pinHash) {
+        this.pinHash = pinHash;
+    }
 
 }
