@@ -37,6 +37,7 @@ public class ManagerService {
         if (ManagerDAO.validateManager(m.getEmail(), m.getPassword())) {
             System.out.println("Manager Login Successful");
             managerOperations(sc);
+            return;
         } else {
             System.out.println("Invalid Email or Password");
         }
@@ -68,9 +69,22 @@ public class ManagerService {
     private static void resolveFraud(Scanner sc) {
         System.out.print("Enter Fraud ID: ");
         int fraudId = sc.nextInt();
+        if(!FraudDAO.checkExists(fraudId))
+        {
+            System.out.println("Wrong FraudId,Please Check");
+            managerOperations(sc);
+            return;
+        }
 
         System.out.print("Enter Account ID to unfreeze: ");
         int accountId = sc.nextInt();
+
+        if(!AccountDAO.checkAccountId(accountId))
+        {
+            System.out.println("Wrong AccountId,Please Check");
+            managerOperations(sc);
+            return;
+        }
 
         FraudDAO.resolveFraud(fraudId);
         AccountDAO.unfreezeAccount(accountId);
@@ -92,7 +106,7 @@ public class ManagerService {
         System.out.print("Please Enter Password: ");
         String password = sc.next();
 
-        String hashed = BCrypt.hashpw(password, BCrypt.gensalt());
+        String hashed = BCrypt.hashpw(password, BCrypt.gensalt(12));
         return new Manager(email, hashed);
     }
 
@@ -102,6 +116,8 @@ public class ManagerService {
 
         System.out.print("Please Enter Password: ");
         String password = sc.next();
+
+
 
         return new Manager(email, password);
     }
