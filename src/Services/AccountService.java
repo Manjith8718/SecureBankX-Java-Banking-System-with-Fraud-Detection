@@ -18,6 +18,7 @@ public class AccountService {
         System.out.println("3.Debit Money");
         System.out.println("4.Transfer Money");
         System.out.println("5.Change Pin");
+        System.out.println("6.Check Balance");
         System.out.print("Your Option Please: ");
 
         int option = sc.nextInt();
@@ -27,12 +28,24 @@ public class AccountService {
             case 3 -> debitMoney(sc);
             case 4 -> transferMoney(sc);
             case 5 -> changePin(sc);
+            case 6 -> checkBalance(sc);
             default -> System.out.println("Enter Valid Option");
         }
     }
 
     public static void createAccount(Scanner sc) {
         Account acc = accountDetails(sc);
+        if(acc == null)
+        {
+            AccountService.accountMenu(sc);
+        }
+        int accountCheck = AccountDAO.getAccountId(acc.getAccountNumber());
+        if(accountCheck != 0)
+        {
+            System.out.println("Account Already Exists");
+            AccountService.accountMenu(sc);
+            return;
+        }
         if (AccountDAO.createAccount(acc)) {
             int accountId = AccountDAO.getAccountId(acc.getAccountNumber());
             PinDAO.insertPin(accountId);
@@ -69,7 +82,7 @@ public class AccountService {
 
             if (AccountDAO.isFrozen(accNo)) {
                 System.out.println("Account is frozen.");
-                return;
+                AccountService.accountMenu(sc);
             }
 
             System.out.print("Enter Amount: ");
@@ -79,12 +92,13 @@ public class AccountService {
                 return;
             }
 
-            if (!validatePinFlow(sc, accNo, accountId)) return;
+            if (!validatePinFlow(sc, accNo, accountId)) AccountService.accountMenu(sc);
 
             if (AccountDAO.creditAmount(con, accNo, amount)) {
                 con.commit();
                 TransactionDAO.insertTransaction(accountId, amount, "CREDIT");
                 System.out.println("Amount credited successfully");
+                AccountService.accountMenu(sc);
             } else {
                 con.rollback();
                 System.out.println("Credit failed");
@@ -116,7 +130,7 @@ public class AccountService {
                 AccountDAO.freezeAccount(accountId);
                 FraudDAO.insertFraud(accountId, "RAPID_TXN");
                 System.out.println("⚠️ Fraud detected. Account frozen.");
-                return;
+                AccountService.accountMenu(sc);
             }
 
             if (AccountDAO.isFrozen(accNo)) {
@@ -131,7 +145,7 @@ public class AccountService {
                 return;
             }
 
-            if (!validatePinFlow(sc, accNo, accountId)) return;
+            if (!validatePinFlow(sc, accNo, accountId)) AccountService.accountMenu(sc);;
 
             // FRAUD RULE 3: HIGH WITHDRAW (OTP)
             double avg = TransactionDAO.getAvgLast5Withdrawals(accountId);
@@ -149,6 +163,7 @@ public class AccountService {
                 con.commit();
                 TransactionDAO.insertTransaction(accountId, amount, "DEBIT");
                 System.out.println("Amount debited successfully");
+                AccountService.accountMenu(sc);
             } else {
                 con.rollback();
                 System.out.println("Insufficient balance");
@@ -180,12 +195,12 @@ public class AccountService {
 
             PinDAO.unfreezeIfExpired(senderId);
 
-            // FRAUD RULE 1: RAPID TRANSACTION
+            // FRAUD RULE: RAPID TRANSACTION
             if (FraudDAO.isRapidTransaction(senderId)) {
                 AccountDAO.freezeAccount(senderId);
                 FraudDAO.insertFraud(senderId, "RAPID_TXN");
                 System.out.println("⚠️ Fraud detected. Account frozen.");
-                return;
+                AccountService.accountMenu(sc);
             }
 
             if (AccountDAO.isFrozen(sender)) {
@@ -193,28 +208,45 @@ public class AccountService {
                 return;
             }
 
-            if (!validatePinFlow(sc, sender, senderId)) return;
+            if (!validatePinFlow(sc, sender, senderId)) {
+                AccountService.accountMenu(sc);
+                return;
+            }
 
             System.out.print("Enter Amount: ");
             int amount = sc.nextInt();
 
+
+            double balance = AccountDAO.checkBalance(sender);
+            if (balance < amount) {
+                System.out.println("❌ Insufficient balance.");
+                con.rollback();
+                AccountService.accountMenu(sc);
+                return;
+            }
+
             if (AccountDAO.debitAmount(con, sender, amount)
                     && AccountDAO.creditAmount(con, receiver, amount)) {
+
                 con.commit();
                 TransactionDAO.insertTransaction(senderId, amount, "TRANSFER_SENT");
                 TransactionDAO.insertTransaction(receiverId, amount, "TRANSFER_RECEIVED");
-                System.out.println("Transfer successful");
+                System.out.println("✅ Transfer successful");
+
             } else {
                 con.rollback();
-                System.out.println("Transfer failed");
+                System.out.println("❌ Transfer failed");
             }
+
+            AccountService.accountMenu(sc);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    // ---------------- CHANGE PIN ----------------
+
+
     public static void changePin(Scanner sc) {
         System.out.print("Enter Account Number: ");
         long accNo = sc.nextLong();
@@ -243,9 +275,10 @@ public class AccountService {
         String hash = BCrypt.hashpw(newPin, BCrypt.gensalt());
         AccountDAO.createPin(accNo, hash);
         System.out.println("PIN updated successfully");
+        AccountService.accountMenu(sc);
     }
 
-    // ---------------- PIN FLOW ----------------
+
     private static boolean validatePinFlow(Scanner sc, long accNo, int accountId) {
         System.out.print("Enter 4 digit PIN: ");
         String pin = sc.next();
@@ -273,7 +306,7 @@ public class AccountService {
         return true;
     }
 
-    // ---------------- OTP (CONSOLE ONLY) ----------------
+
     private static boolean verifyOtp(Scanner sc, int accountId) {
         int otp = 100000 + new Random().nextInt(900000);
 
@@ -309,8 +342,47 @@ public class AccountService {
         long accNo = AccountDAO.generateUniqueAccountNumber();
         System.out.println("Generated Account Number: " + accNo);
 
-        return new Account(userId, accNo);
+
+        System.out.print("Set 4-digit PIN: ");
+        String pin = sc.next();
+
+        if (!pin.matches("\\d{4}")) {
+            System.out.println("Invalid PIN. Must be exactly 4 digits.");
+            return null;
+        }
+
+
+        String pinHash = BCrypt.hashpw(pin, BCrypt.gensalt(12));
+
+        return new Account(userId, accNo, pinHash);
     }
 
 
+   public static void checkBalance(Scanner sc)
+   {
+       System.out.print("Enter Account Number: ");
+       long accNo = sc.nextLong();
+
+       if (!AccountDAO.validAccount(accNo)) {
+           System.out.println("Account does not exist");
+           return;
+       }
+
+       if (AccountDAO.isFrozen(accNo)) {
+           System.out.println("Account is frozen.");
+           return;
+       }
+       int accId = AccountDAO.getAccountId(accNo);
+       if (!validatePinFlow(sc, accNo, accId)) AccountService.accountMenu(sc);
+
+       Double balance = AccountDAO.checkBalance(accNo);
+
+       if (balance != null) {
+           System.out.println("Current Balance: ₹" + balance);
+           AccountService.accountMenu(sc);
+           return;
+       } else {
+           System.out.println("Account not found or inactive.");
+       }
+   }
 }

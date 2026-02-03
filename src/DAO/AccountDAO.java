@@ -11,8 +11,8 @@ public class AccountDAO {
     // ---------------- CREATE ACCOUNT ----------------
     public static boolean createAccount(Account a) {
         String sql = """
-            INSERT INTO accounts(user_id, account_number,  status, balance)
-            VALUES (?, ?, 'ACTIVE', 0.0)
+            INSERT INTO accounts(user_id, account_number, status, balance,pin_hash)
+            VALUES (?, ?, 'ACTIVE', 0.0,?)
         """;
 
         try (Connection con = DBConnection.getConnection();
@@ -20,7 +20,7 @@ public class AccountDAO {
 
             ps.setInt(1, a.getUserId());
             ps.setLong(2, a.getAccountNumber());
-
+            ps.setString(3,a.getPinHash());
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
@@ -46,8 +46,8 @@ public class AccountDAO {
     }
 
     // ---------------- VALIDATE PIN ----------------
-    public static boolean validatePin(long accNo, String pin) {
-        String sql = "SELECT pin FROM accounts WHERE account_number = ?";
+    public static boolean validatePin(long accNo, String enteredPin) {
+        String sql = "SELECT pin_hash FROM accounts WHERE account_number = ?";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -56,7 +56,8 @@ public class AccountDAO {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                return BCrypt.checkpw(pin, rs.getString("pin"));
+                String storedHash = rs.getString("pin_hash");
+                return BCrypt.checkpw(enteredPin, storedHash);
             }
 
         } catch (SQLException e) {
@@ -162,7 +163,7 @@ public class AccountDAO {
 
     // ---------------- CREATE / CHANGE PIN ----------------
     public static boolean createPin(long accNo, String hash) {
-        String sql = "UPDATE accounts SET pin = ? WHERE account_number = ?";
+        String sql = "UPDATE accounts SET hash_pin = ? WHERE account_number = ?";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -201,4 +202,45 @@ public class AccountDAO {
         return accNo;
     }
 
+    public static Double checkBalance(long accountNumber) {
+
+        String sql = "SELECT balance FROM accounts WHERE account_number = ? AND status = 'ACTIVE'";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setLong(1, accountNumber);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getDouble("balance");
+            } else {
+                System.out.println("Account not found or inactive.");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null; // account not found / error
+    }
+
+
+    public static boolean checkAccountId(int accountid)
+    {
+         String sql = "SELECT account_id FROM accounts WHERE account_number = ?";
+         try(Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql))
+         {
+             ps.setInt(1, accountid);
+             ResultSet rs = ps.executeQuery();
+             if (rs.next()) {
+                return true;
+             }
+         }
+         catch (SQLException e) {
+             e.printStackTrace();
+         }
+         return false;
+    }
 }
