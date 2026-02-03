@@ -125,4 +125,21 @@ public class FraudDAO {
         }
         return false;
     }
+
+    public static boolean checkAccountIdExists(int accountId)
+    {
+        String sql = "SELECT account_id from frauds_alerts where account_id = ?";
+        try(Connection con = DBConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, accountId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return true;
+            }
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

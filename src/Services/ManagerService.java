@@ -48,15 +48,17 @@ public class ManagerService {
         while (true) {
             System.out.println("\n--- Manager Dashboard ---");
             System.out.println("1.View Fraud Alerts");
-            System.out.println("2.Resolve Fraud & Unfreeze Account");
-            System.out.println("3.Logout");
+            System.out.println("2.Resolve Fraud");
+            System.out.print("3.Freeze Account");
+            System.out.println("4.Logout");
             System.out.print("Choose option: ");
 
             int choice = sc.nextInt();
             switch (choice) {
                 case 1 -> FraudDAO.viewAllFrauds();
                 case 2 -> resolveFraud(sc);
-                case 3 -> {
+                case 3 -> freezeAccountByManager(sc);
+                case 4 -> {
                     System.out.println("Logged out");
                     return;
                 }
@@ -117,8 +119,27 @@ public class ManagerService {
         System.out.print("Please Enter Password: ");
         String password = sc.next();
 
-
-
         return new Manager(email, password);
+    }
+
+    private static void freezeAccountByManager(Scanner sc) {
+        System.out.print("Please Enter Account ID to unfreeze: ");
+        int accountId = sc.nextInt();
+        if(!AccountDAO.checkAccountId(accountId))
+        {
+            System.out.println("Wrong AccountId,Please Check Manager");
+            managerOperations(sc);
+            return;
+        }
+        if(!FraudDAO.checkAccountIdExists(accountId))
+        {
+            System.out.println("Account Does Not Have Any Fraud, Please Check Manager");
+            managerOperations(sc);
+            return;
+        }
+        AccountDAO.freezeAccount(accountId);
+        System.out.println("Account Frozen Successfully");
+        managerOperations(sc);
+        return;
     }
 }
