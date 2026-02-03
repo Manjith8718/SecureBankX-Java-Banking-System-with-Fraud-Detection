@@ -41,7 +41,7 @@ public class FraudDAO {
     public static void insertFraud(int accountId, String fraudType) {
 
         String sql = """
-            INSERT INTO fraud_alerts(account_id, fraud_type, status)
+            INSERT INTO frauds_alerts(account_id, fraud_type, status)
             VALUES (?, ?, 'PENDING')
         """;
 
@@ -65,7 +65,7 @@ public class FraudDAO {
 
         String sql = """
             SELECT fraud_id, account_id, fraud_type, detected_time, status
-            FROM fraud_alerts
+            FROM frauds_alerts
             WHERE status = 'PENDING'
             ORDER BY detected_time DESC
         """;
@@ -95,7 +95,7 @@ public class FraudDAO {
     // ---------------- RESOLVE FRAUD ----------------
     public static boolean resolveFraud(int fraudId) {
 
-        String sql = "UPDATE fraud_alerts SET status = 'RESOLVED' WHERE fraud_id = ?";
+        String sql = "UPDATE frauds_alerts SET status = 'RESOLVED' WHERE fraud_id = ?";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -104,6 +104,23 @@ public class FraudDAO {
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public static boolean checkExists(int fraudId)
+    {
+        String sql = "SELECT fraud_id from frauds_alerts where fraud_id = ?";
+        try(Connection con = DBConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, fraudId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return true;
+            }
+        }
+        catch (SQLException e) {
             e.printStackTrace();
         }
         return false;

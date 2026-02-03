@@ -9,9 +9,8 @@ import java.sql.SQLException;
 
 public class PinDAO {
 
-    // ---------------- INSERT PIN LOCK ROW ----------------
     public static void insertPin(int accountId) {
-        String sql = "INSERT INTO pin_lock(account_id, attempts) VALUES (?, 0)";
+        String sql = "INSERT INTO pin_lock(account_id) VALUES (?)";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -25,7 +24,6 @@ public class PinDAO {
         }
     }
 
-    // ---------------- INCREMENT WRONG ATTEMPTS ----------------
     public static void incrementAttempts(int accountId) {
         String sql = "UPDATE pin_lock SET attempts = attempts + 1 WHERE account_id = ?";
 
@@ -40,7 +38,6 @@ public class PinDAO {
         }
     }
 
-    // ---------------- GET ATTEMPTS ----------------
     public static int getAttempts(int accountId) {
         String sql = "SELECT attempts FROM pin_lock WHERE account_id = ?";
 
@@ -60,7 +57,6 @@ public class PinDAO {
         return 0;
     }
 
-    // ---------------- RESET ATTEMPTS ----------------
     public static void resetAttempts(int accountId) {
         String sql = "UPDATE pin_lock SET attempts = 0 WHERE account_id = ?";
 
@@ -75,7 +71,6 @@ public class PinDAO {
         }
     }
 
-    // ---------------- BLOCK PIN FOR 24 HOURS ----------------
     public static void blockFor24Hours(int accountId) {
         String sql = """
             UPDATE pin_lock
@@ -94,7 +89,6 @@ public class PinDAO {
         }
     }
 
-    // ---------------- UNFREEZE ACCOUNT IF BLOCK EXPIRED ----------------
     public static void unfreezeIfExpired(int accountId) {
         String sql = """
             UPDATE accounts a
