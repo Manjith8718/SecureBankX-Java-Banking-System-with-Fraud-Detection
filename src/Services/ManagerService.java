@@ -49,7 +49,7 @@ public class ManagerService {
             System.out.println("\n--- Manager Dashboard ---");
             System.out.println("1.View Fraud Alerts");
             System.out.println("2.Resolve Fraud");
-            System.out.print("3.Freeze Account");
+            System.out.println("3.Freeze Account");
             System.out.println("4.Logout");
             System.out.print("Choose option: ");
 
@@ -123,7 +123,7 @@ public class ManagerService {
     }
 
     private static void freezeAccountByManager(Scanner sc) {
-        System.out.print("Please Enter Account ID to unfreeze: ");
+        System.out.print("Please Enter Account ID to freeze: ");
         int accountId = sc.nextInt();
         if(!AccountDAO.checkAccountId(accountId))
         {

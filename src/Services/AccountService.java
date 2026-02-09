@@ -12,24 +12,28 @@ import java.util.Scanner;
 public class AccountService {
 
     public static void accountMenu(Scanner sc) {
-        System.out.println("Welcome TO Banking Page");
-        System.out.println("1.Create Bank Account");
-        System.out.println("2.Credit Money");
-        System.out.println("3.Debit Money");
-        System.out.println("4.Transfer Money");
-        System.out.println("5.Change Pin");
-        System.out.println("6.Check Balance");
-        System.out.print("Your Option Please: ");
+        while (true) {
+            System.out.println("\n--- Banking Menu ---");
+            System.out.println("1.Create Account");
+            System.out.println("2.Credit");
+            System.out.println("3.Debit");
+            System.out.println("4.Transfer");
+            System.out.println("5.Change PIN");
+            System.out.println("6.Check Balance");
+            System.out.println("7.Back");
 
-        int option = sc.nextInt();
-        switch (option) {
-            case 1 -> createAccount(sc);
-            case 2 -> creditMoney(sc);
-            case 3 -> debitMoney(sc);
-            case 4 -> transferMoney(sc);
-            case 5 -> changePin(sc);
-            case 6 -> checkBalance(sc);
-            default -> System.out.println("Enter Valid Option");
+            int option = sc.nextInt();
+
+            switch (option) {
+                case 1 -> createAccount(sc);
+                case 2 -> creditMoney(sc);
+                case 3 -> debitMoney(sc);
+                case 4 -> transferMoney(sc);
+                case 5 -> changePin(sc);
+                case 6 -> checkBalance(sc);
+                case 7 -> { return; }
+                default -> System.out.println("Invalid option");
+            }
         }
     }
 
