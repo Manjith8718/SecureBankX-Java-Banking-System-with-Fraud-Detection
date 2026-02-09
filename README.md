@@ -97,4 +97,4 @@ MySQL Database
 
 1. Clone the repository
    ```bash
-   git clone https://github.com/Manjith8718/securebankx-java-banking-system.git
+   git clone https://github.com/Manjith8718/SecureBankX-Java-Banking-System-with-Fraud-Detection.git
